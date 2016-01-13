@@ -1,0 +1,25 @@
+spark-shell
+============
+
+source 
+------
+sparktest1
+
+input dataset
+-------------
+- hdfs location ==> /data/ingest/sparktest1
+- hive schema - sparktest1
+
+- change to sudo -i or the user which has access to spark
+
+Orc hive spark
+==============
+- http://hortonworks.com/blog/bringing-orc-support-into-apache-spark/
+
+
+
+ val cats = sqlContext.read.format("orc").load("/data/ingest/sparktest1")
+
+
+hdfs_path
+

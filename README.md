@@ -11,8 +11,8 @@ Select table and subset of columns. Also create new columns.
 ##### Parameters
 
 *   Table name - Mandatory
-*   Boolean optional flag (TRUE or FALSE) to indicate if original columns should be kept or not.
-*	Column names 
+*   Boolean optional flag (TRUE or FALSE) to indicate if original columns should be kept or not - Optional
+*	Column names - Mandatory
 
 ####Join
 Usage

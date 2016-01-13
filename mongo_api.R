@@ -4,7 +4,7 @@ LoadSources <- function(...) {
   args = as.list(match.call())
   args_sources = args[2:length(args)]
   args_sources = lapply(args_sources, deparse)
-
+  
   source_names = paste("'", paste(lapply(args_sources, LastDotValue), collapse="', '"), "'", sep="")
   print(source_names)
   
@@ -15,6 +15,7 @@ LoadSources <- function(...) {
   for (i in 1:length(sources[[1]])) {
     source_name = sources$name[[i]]
     source_id = sources$X_id[[i]]
+    hdfs_path = sources$hdfs_path 
     tables = sources$tables[[i]]
     
     # removed initial iw.sources from variable names
@@ -98,4 +99,3 @@ LastDotValue <- function(var) {
   parts = strsplit(var, '.', fixed=TRUE)[[1]]
   return(parts[[length(parts)]])
 }
-
