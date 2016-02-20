@@ -231,3 +231,7 @@ print("^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^")
 
 
 }
+
+prepare_p1_ClaimBaseTableDFRt = prepare_p2_table(iw.sources.POC_MBR_OPPTY) 
+
+assign("mo_p1_join_df", prepare_p1_ClaimBaseTableDFRt, envir = .GlobalEnv)
