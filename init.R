@@ -1,4 +1,4 @@
-InitMongo <- function(db="infoworks-new", host="54.164.4.54", port='27017', username='infoworks', password='IN11**rk')
+InitMongo <- function(db, host, port, username, password)
 {
   # get the values from config file available on iw rest api
   
@@ -44,7 +44,7 @@ InitMongo <- function(db="infoworks-new", host="54.164.4.54", port='27017', user
   }
 }
 
-InitSpark <- function(sparkMaster = 'local', hdfs_url = "hdfs://ip-10-37-200-15.ec2.internal:8020") {
+InitSpark <- function(sparkMaster, hdfs_url) {
   #------ spark initialize ----
   
   # Set this to where Spark is installed
@@ -70,10 +70,11 @@ InitSpark <- function(sparkMaster = 'local', hdfs_url = "hdfs://ip-10-37-200-15.
   print(hdfs_url)
 }
 
-Init <- function(db="infoworks-new", host="localhost", port='27017', username='infoworks', password='IN11**rk',
+Init <- function(db="infoworks-new", host="localhost", port='27017',
+                 username='infoworks', password='IN11**rk',
                  sparkMaster = 'local', hdfs_url = "hdfs://ip-10-37-200-15.ec2.internal:8020") {
-  InitMongo(db="infoworks-new", host="54.164.4.54", port='27017', username='infoworks', password='IN11**rk')
-  InitSpark(sparkMaster = 'local', hdfs_url = "hdfs://ip-10-37-200-15.ec2.internal:8020")
+  InitMongo(db, host, port, username, password)
+  InitSpark(sparkMaster, hdfs_url)
 }
 
 # ===============================
