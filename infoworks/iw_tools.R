@@ -15,3 +15,12 @@ aliasDF <- function(df, alias_prefix, uppercase = FALSE) {
   }
   return (df)
 }
+
+printDf <- function(df, name) {
+  print("VVVVVVVVVVVVVVVVVVVV")
+  print(name)
+  print(names(df))
+  showDF(df)
+  print(name)
+  print("^^^^^^^^^^^^^^^^^^^^^^^^")
+}
