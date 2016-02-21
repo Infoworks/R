@@ -6,14 +6,14 @@ ffmInd <- function(latestClaimData) {
   # select min(fill_dt) for each EPH_LINK_ID
   
   # TODO Remove this join as we would get latest claim data full
-  mbrAcctHist = SelectDF(skhmodata.V_MBR_ACCT_HIST)
+  mbrAcctHist = SelectDF(POC_MBR_OPPTY.V_MBR_ACCT_HIST)
   joinedmbr = join(latestClaimData, mbrAcctHist, latestClaimData$MBR_ACCT_GID == mbrAcctHist$MBR_ACCT_GID, "inner")
   aggregatedOldestClaim = agg(groupBy(joinedmbr, "eph_link_id", "GPI4_CD"), "fill_dt" -> "min")
   
   # join with latestclaim to get records for min fill_dt
-  join(aggregatedOldestClaim, latestClaimData, )
+  join(aggregatedOldestClaim, latestClaimData,  "")
   
-  selectExpr(latestClaimData, "*", )
+  selectExpr(latestClaimData, "*", "")
 } 
 
 
@@ -21,11 +21,13 @@ ffmInd <- function(latestClaimData) {
 
 stdDaySupply <- function(tableDf) { 
   
-  dsqTableDf = selectExpr(tableDf, "*", "CASE WHEN LC_DAY_SPLY_QTY BETWEEN 1 AND 33  THEN 30
-                            WHEN LC_DAY_SPLY_QTY BETWEEN 34 AND 83 THEN  60
-                            WHEN LC_DAY_SPLY_QTY >=84  THEN 90
-                            END as DAY_SPLY_QTY ")
+  print(head(selectExpr(tableDf, "PHMCY_DAY_SPLY_QTY")))
+  dsqTableDf = selectExpr(tableDf, "*", "CASE WHEN PHMCY_DAY_SPLY_QTY BETWEEN 1 AND 33  THEN 30
+                            WHEN PHMCY_DAY_SPLY_QTY BETWEEN 34 AND 83 THEN  60
+                            WHEN PHMCY_DAY_SPLY_QTY >=84  THEN 90
+                            END as NORMALIZED_DAY_SPLY_QTY ")
 
+  print(head(selectExpr(dsqTableDf, "PHMCY_DAY_SPLY_QTY", "NORMALIZED_DAY_SPLY_QTY")))
   return <- dsqTableDf   
 }
 
@@ -33,7 +35,8 @@ stdDaySupply <- function(tableDf) {
 
 memberCurrentAge <- function(tablename) { 
   currentdate = Sys.Date()
-  expr = paste("FLOOR(MONTHS_BETWEEN('", currentdate, "', ACCT_MBR_BRTH_DT) / 12) as MBR_CURR_AGE", sep = "")
+  #print(head(selectExpr(tablename, "MBR_ACC_MBR_BRTH_DT")))
+  expr = paste("FLOOR(MONTHS_BETWEEN('", currentdate, "', MBR_ACC_MBR_BRTH_DT) / 12) as MBR_CURR_AGE", sep = "")
   age = selectExpr(tablename, "*", expr )
 
 
@@ -44,7 +47,7 @@ memberCurrentAge <- function(tablename) {
 
 minorIndicator <- function(mydf) { 
   # case when MBR_CURR_AGE < 18 then 'Y' else 'N
-  minorind = selectExpr(mydf, "*", "case when MBR_CURR_AGE < 18 then 'Y' else 'N' end as MINOR_IND")  
+  minorind = selectExpr(mydf, "*", "cast(case when MBR_CURR_AGE < 18 then 'Y' else 'N' end as SMALLINT) as MINOR_IND")  
   return <-minorind
 }
 
@@ -52,11 +55,16 @@ minorIndicator <- function(mydf) {
 
 mbrEligIndicator <- function(mbrdf) { 
   # case when date between CVRG_EFF_DT and CVRG_EXPRN_DT then 'Y' else 'N'
+  print(head(selectExpr(mbrdf, "MBR_ACC_CVRG_CVRG_EFF_DT", "MBR_ACC_CVRG_CVRG_EXPRN_DT")))
+  
   currentdate = Sys.Date()
   elig_expr = paste("case when'" ,  
-      currentdate ,  "'between MAC_CVRG_EFF_DT and MAC_CVRG_EXPRN_DT then 'Y' else 'N' end as MBR_CURR_ELIG_IND",
+      currentdate ,  "'between MBR_ACC_CVRG_CVRG_EFF_DT and MBR_ACC_CVRG_CVRG_EXPRN_DT 
+        then 'Y' else 'N' end as MBR_CURR_ELIG_IND",
       sep = "")
   mbrelig = selectExpr(mbrdf, "*", elig_expr)  
+  
+  print(head(selectExpr(mbrelig, "MBR_ACC_CVRG_CVRG_EFF_DT", "MBR_ACC_CVRG_CVRG_EXPRN_DT", "MBR_CURR_ELIG_IND")))
   return <-mbrelig  
 }
 
@@ -66,7 +74,7 @@ mbrEligIndicator <- function(mbrdf) {
 # and most recent claim record DLVRY_SYSTM_CD = 'R' then 'Y' else 'N' 
 
 retailToMailIndicator <- function(mbrdf) {
-  rtm_expr = selectExpr(mbrdf, "*", "case when BPRCPO_MAIL_IND = 'Y' then 'Y' else 'N' end  as RTM_IND") # TODO add for DLVRY_SYSTM_CD from phmcy claim
+  rtm_expr = selectExpr(mbrdf, "*", "case when BNFT_PLAN_RCP_OPTNS_MAIL_IND = 'Y' then 'Y' else 'N' end  as RTM_IND") # TODO add for DLVRY_SYSTM_CD from phmcy claim
   return <- rtm_expr 
 }
 
@@ -78,9 +86,12 @@ retailToMailIndicator <- function(mbrdf) {
 
 maintenanceChoiceVoluntryIndicator <- function(mbrdf) {
   maintenanceChoiceVoluntryIndicatorDF = selectExpr(mbrdf, "*", "case when 
-                              (BPRCPO_MAINT_CHOICE_TYP_CD='MV' AND DAY_SPLY_QTY BETWEEN 21 AND 33 AND LC_DLVRY_SYSTM_CD = 'R' ) 
+                              (BNFT_PLAN_RCP_OPTNS_MAINT_CHOICE_TYP_CD='MV' AND 
+                              PHMCY_DAY_SPLY_QTY BETWEEN 21 AND 33 AND PHMCY_DLVRY_SYSTM_CD = 'R' ) 
                               OR
-                              (BPRCPO_MAINT_CHOICE_TYP_CD ='MV' and DAY_SPLY_QTY >=84  AND PHMCY_DENORM_CVS_RTL_IND = 'N' AND PHMCY_DENORM_CVS_MAIL_IND='N' )
+                              (BNFT_PLAN_RCP_OPTNS_MAINT_CHOICE_TYP_CD ='MV' 
+                              and PHMCY_DAY_SPLY_QTY >=84  AND 
+                              PHMCY_DENORM_CVS_RTL_IND = 'N' AND PHMCY_DENORM_CVS_MAIL_IND='N' )
                               then 'Y' else 'N' end  as MCV_IND") 
   return <- maintenanceChoiceVoluntryIndicatorDF 
 }
@@ -103,33 +114,64 @@ maintenanceChoiceVoluntryIndicator <- function(mbrdf) {
 
 ########################################################################################################
 
-# case when drg.DEA_CLS_CD in ('0',' ') then 'N' else 'Y'
+  # case when drg.DEA_CLS_CD in ('0',' ') then 'N' else 'Y'
 
 controlledSubstanceInd <- function(tableDf) { 
+  return <- selectExpr(tableDf, "*", "case when DRUG_DEA_CLS_CD in ('0',' ') then 'N' else 'Y' end as CONTROLLED_SUBSTANCE_IND ")
 
-  }
-
+}
 
 ########################################################################################################
-saveToHdfs <- function(hdfspath, transformed_df) {
+cmpgnMbrOpptyTable <- function(joineddf) { 
+  
+  return <- selectExpr(joineddf, "123 as MBR_OPPTY_GID", "MBR_ACC_EPH_LINK_ID as EPH_LINK_ID", "DRUG_GPI4_CD as GPI4_CD", " PHMCY_LVL1_ACCT_GID as LVL1_ACCT_GID", 
+             " PHMCY_LVL3_ACCT_GID as LVL3_ACCT_GID",  " CLNT_ACCT_DENORM_LVL0_ACCT_ID as LVL0_ACCT_ID", " CLNT_ACCT_DENORM_LVL0_ACCT_NM as LVL0_ACCT_NM", 
+             " CLNT_ACCT_DENORM_LVL0_EFF_DT as LVL0_EFF_DT", " CLNT_ACCT_DENORM_LVL0_EXPRN_DT as LVL0_EXPRN_DT", " CLNT_ACCT_DENORM_LVL1_ACCT_ID as LVL1_ACCT_ID", 
+             " CLNT_ACCT_DENORM_LVL1_ACCT_NM as LVL1_ACCT_NM", " CLNT_ACCT_DENORM_LVL1_EFF_DT as LVL1_EFF_DT", " CLNT_ACCT_DENORM_LVL1_EXPRN_DT as LVL1_EXPRN_DT", 
+             " CLNT_ACCT_DENORM_NON_PBM_CLNT_TYP_CD as NON_PBM_CLNT_TYP_CD", " CLNT_ACCT_DENORM_NON_PBM_LOB_CD as NON_PBM_LOB_CD", 
+             " DRUG_DRUG_PROD_GID as DRUG_PROD_GID", " PHMCY_CLM_EVNT_GID as LAST_FILL_CLM_GID", 
+             " PHMCY_FILL_DT as LAST_FILL_DT", " PHMCY_MBR_ACCT_GID as MBR_ACCT_GID", " MBR_ACC_CVRG_CVRG_EFF_DT as CVRG_EFF_DT", 
+             " MBR_ACC_CVRG_CVRG_EXPRN_DT as CVRG_EXPRN_DT", " MBR_ACC_CONT_CVRG_ELIG_CC_EFF_DT as ELIG_CC_EFF_DT", 
+             " MBR_ACC_CONT_CVRG_ELIG_CC_EXPRN_DT as ELIG_CC_EXPRN_DT", " PHMCY_DENORM_PHMCY_PTY_GID as PHMCY_PTY_GID", " PHMCY_DENORM_CVS_MAIL_IND as CVS_MAIL_IND", 
+             " PHMCY_SRC_CD as CLM_SRC_CD", " PHMCY_PRSCBR_PTY_GID as PRSCBR_PTY_GID", " PHMCY_DLVRY_SYSTM_CD as DLVRY_SYSTM_CD", 
+             " PHMCY_DAY_SPLY_QTY as DAY_SPLY_QTY", "NORMALIZED_DAY_SPLY_QTY as NORMALIZED_DAY_SPLY_QTY", " PHMCY_ADJD_FRMLY_CD as ADJD_FRMLY_CD", 
+             " PHMCY_MEDD_CLM_IND as MEDD_CLM_IND", " MBR_ACC_GNDR_CD as GNDR_CD",  " MBR_CURR_AGE as MBR_CURR_AGE", 
+             " MINOR_IND as MINOR_IND", " MBR_CURR_ELIG_IND as MBR_CURR_ELIG_IND", " RTM_IND as RTM_IND", "MCV_IND as MCV_IND", 
+             # TODO " as RFM_IND", 
+             # TODO " as FFM_IND", 
+             " CONTROLLED_SUBSTANCE_IND as CONTROLLED_SUBSTANCE_IND", " DRUG_BUS_MAINT_IND as MAINTENANCE_IND", 
+             " PHMCY_PHMCY_LTC_IND as PHMCY_LTC_IND", " DRUG_SPCLT_DRUG_IND as SPCLT_DRUG_IND", paste("'" ,Sys.time() , "'" ," as CREATE_TMS", sep = ""))
   
 }
 
 ########################################################################################################
+saveToHdfs <- function(df, host, path) {
+  writeToHdfs(df, host,path)
+  print("do")
+}
 
+########################################################################################################
+
+print("Starting")
 source('~/demo/init.R')
+print("initialization done")
 source('~/demo/spark_api.R')
 source('~/demo/mongo_api.R')
 source('~/demo/myhelper.R')
 source('~/demo/iw_tools.R')
 source('~/demo/cvs_mo_transformations.R')
+source('~/demo/iw_hdfsUtil.R')
 
+print("Phase 1 join starting")
+
+completeTable = prepare_p2_table(iw.sources.POC_MBR_OPPTY)
 print(head(completeTable))
 
 stdDaySupplyDF = stdDaySupply(completeTable)
+#print(head(stdDaySupplyDF))
 
 age_added_view = memberCurrentAge(stdDaySupplyDF)
-#print(head(age_added_view))
+print(head(age_added_view))
 
 minorInd_added_view = minorIndicator(age_added_view)
 #print(head(minorInd_added_view))
@@ -141,6 +183,12 @@ rtm_ind_view = retailToMailIndicator(mbr_elig_view)
 #print(head(rtm_ind_view))
 
 maintenanceChoiceVoluntryIndicatorDF = maintenanceChoiceVoluntryIndicator(rtm_ind_view)
-print(head(rtm_ind_view)) 
+#print(head(maintenanceChoiceVoluntryIndicatorDF)) 
 
+controlledSubstanceIndDf = controlledSubstanceInd(maintenanceChoiceVoluntryIndicatorDF)
+#print(head(maintenanceChoiceVoluntryIndicatorDF)) 
+
+cmpgnMbrOpptyTableDf = cmpgnMbrOpptyTable(controlledSubstanceIndDf)
+print(head(cmpgnMbrOpptyTableDf))
+saveToHdfs(cmpgnMbrOpptyTableDf, "ip-10-37-200-15.ec2.internal", "/tmp/final_mo_cmpgn/")
 
