@@ -65,9 +65,9 @@ InitSpark <- function(sparkMaster, hdfs_url) {
   print(hdfs_url)
 }
 
-iw_init <- function(db="infoworks-new", host="localhost", port='27017',
+iw_init <- function(db="infoworks-new", host="54.164.4.54", port='27017',
                  username='infoworks', password='IN11**rk',
-                 sparkMaster = 'local[10]', hdfs_url = "hdfs://ip-172-30-0-245.ec2.internal:8020") {
+                 sparkMaster = 'local[10]', hdfs_url = "hdfs://ip-10-37-200-15.ec2.internal:8020") {
 
   #hdfs://ip-172-30-0-245.ec2.internal:8020    demo
   #hdfs://ip-10-37-200-15.ec2.internal:8020    demo backup
@@ -77,9 +77,9 @@ iw_init <- function(db="infoworks-new", host="localhost", port='27017',
 
   # Set this to where Spark is installed
   #demo
-  Sys.setenv(SPARK_HOME="/home/rstudio/spark-1.4.0-bin-hadoop2.6")
+  #Sys.setenv(SPARK_HOME="/home/rstudio/spark-1.4.0-bin-hadoop2.6")
   #demo backup
-  #Sys.setenv(SPARK_HOME="/home/rstudio/spark-1.5.2-bin-hadoop2.6/")
+  Sys.setenv(SPARK_HOME="/home/rstudio/spark-1.5.2-bin-hadoop2.6/")
   InitSpark(sparkMaster, hdfs_url)
 }
 

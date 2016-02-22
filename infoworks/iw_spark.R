@@ -467,7 +467,7 @@ OrcFilePath <-function(table) {
   source_id = get(paste("iw.sources", t1[[1]], sep="."))$id
   hdfspath = get(paste("iw.sources", t1[[1]], sep="."))$hdfs_path
   source_type = get(paste("iw.sources", t1[[1]], sep="."))$source_type
-  print(paste("st",source_type))
+  #print(paste("st",source_type))
   table_id = table$id
   
     #TODO : Handle for sources not having primary partitions 

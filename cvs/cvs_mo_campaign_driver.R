@@ -5,10 +5,10 @@ rm(list = ls(), envir = .GlobalEnv)
 print("Starting")
 
 #Source infoworks lib
-source('~/infoworks.R')
+source('infoworks/infoworks.R')
 
 #Source cvs mo code
-source('cvs_mo_phase2.R')
+source('cvs/cvs_mo_phase2.R')
 
 #Prepare computation plan
 cmpgnMbrOpptyTable <- prepareMoCampaignTable()
