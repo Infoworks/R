@@ -470,12 +470,15 @@ OrcFilePath <-function(table) {
   print(paste("st",source_type))
   table_id = table$id
   
-  #TODO : Handle for sources not having primary partitions 
-  if(source_type == "csv") {
-    paste(hdfs_url, hdfspath, "/", table_id, "/merged/orc/*", sep="")
+    #TODO : Handle for sources not having primary partitions 
+  if( is.null(source_type)  ||  is.na(source_type))
+  {
+    return <- paste(hdfs_url, hdfspath, "/", table_id, "/merged/orc/*/*/*", sep="")
+  }else  if( !is.null(source_type)  &&  !is.na(source_type)  && "csv" == source_type) {
+    return <- paste(hdfs_url, hdfspath, "/", table_id, "/merged/orc/*", sep="")
   }
   else {
-    paste(hdfs_url, hdfspath, "/", table_id, "/merged/orc/*/*/*", sep="")
+    return <- paste(hdfs_url, hdfspath, "/", table_id, "/merged/orc/*/*/*", sep="")
     
   }
   
