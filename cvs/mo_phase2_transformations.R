@@ -1,3 +1,4 @@
+rm(list = ls(), envir = .GlobalEnv) 
 # Transformations
 
 ffmInd <- function(latestClaimData) {
@@ -21,13 +22,13 @@ ffmInd <- function(latestClaimData) {
 
 stdDaySupply <- function(tableDf) { 
   
-  print(head(selectExpr(tableDf, "PHMCY_DAY_SPLY_QTY")))
+  #print(head(selectExpr(tableDf, "PHMCY_DAY_SPLY_QTY")))
   dsqTableDf = selectExpr(tableDf, "*", "CASE WHEN PHMCY_DAY_SPLY_QTY BETWEEN 1 AND 33  THEN 30
                             WHEN PHMCY_DAY_SPLY_QTY BETWEEN 34 AND 83 THEN  60
                             WHEN PHMCY_DAY_SPLY_QTY >=84  THEN 90
                             END as NORMALIZED_DAY_SPLY_QTY ")
 
-  print(head(selectExpr(dsqTableDf, "PHMCY_DAY_SPLY_QTY", "NORMALIZED_DAY_SPLY_QTY")))
+  #print(head(selectExpr(dsqTableDf, "PHMCY_DAY_SPLY_QTY", "NORMALIZED_DAY_SPLY_QTY")))
   return <- dsqTableDf   
 }
 
@@ -37,25 +38,26 @@ memberCurrentAge <- function(tablename) {
   currentdate = Sys.Date()
   #print(head(selectExpr(tablename, "MBR_ACC_MBR_BRTH_DT")))
   expr = paste("FLOOR(MONTHS_BETWEEN('", currentdate, "', MBR_ACC_MBR_BRTH_DT) / 12) as MBR_CURR_AGE", sep = "")
-  age = selectExpr(tablename, "*", expr )
+  ageDF = selectExpr(tablename, "*", expr )
 
-
-  return <- age  
+  #print(head(select(ageDF, "MBR_ACC_MBR_BRTH_DT", "MBR_CURR_AGE")))
+  return <- ageDF  
 }
 
 ########################################################################################################
 
 minorIndicator <- function(mydf) { 
   # case when MBR_CURR_AGE < 18 then 'Y' else 'N
-  minorind = selectExpr(mydf, "*", "cast(case when MBR_CURR_AGE < 18 then 'Y' else 'N' end as SMALLINT) as MINOR_IND")  
-  return <-minorind
+  minorIndDF = selectExpr(mydf, "*", "case when MBR_CURR_AGE < 18 then 'Y' else 'N' end  as MINOR_IND")  
+  #print(head(select(minorIndDF,  "MBR_CURR_AGE", "MINOR_IND")))
+  return <-minorIndDF
 }
 
 ########################################################################################################
 
 mbrEligIndicator <- function(mbrdf) { 
   # case when date between CVRG_EFF_DT and CVRG_EXPRN_DT then 'Y' else 'N'
-  print(head(selectExpr(mbrdf, "MBR_ACC_CVRG_CVRG_EFF_DT", "MBR_ACC_CVRG_CVRG_EXPRN_DT")))
+  #print(head(selectExpr(mbrdf, "MBR_ACC_CVRG_CVRG_EFF_DT", "MBR_ACC_CVRG_CVRG_EXPRN_DT")))
   
   currentdate = Sys.Date()
   elig_expr = paste("case when'" ,  
@@ -64,7 +66,7 @@ mbrEligIndicator <- function(mbrdf) {
       sep = "")
   mbrelig = selectExpr(mbrdf, "*", elig_expr)  
   
-  print(head(selectExpr(mbrelig, "MBR_ACC_CVRG_CVRG_EFF_DT", "MBR_ACC_CVRG_CVRG_EXPRN_DT", "MBR_CURR_ELIG_IND")))
+  #print(head(select(mbrelig, "MBR_ACC_CVRG_CVRG_EFF_DT", "MBR_ACC_CVRG_CVRG_EXPRN_DT", "MBR_CURR_ELIG_IND")))
   return <-mbrelig  
 }
 
@@ -74,8 +76,10 @@ mbrEligIndicator <- function(mbrdf) {
 # and most recent claim record DLVRY_SYSTM_CD = 'R' then 'Y' else 'N' 
 
 retailToMailIndicator <- function(mbrdf) {
-  rtm_expr = selectExpr(mbrdf, "*", "case when BNFT_PLAN_RCP_OPTNS_MAIL_IND = 'Y' then 'Y' else 'N' end  as RTM_IND") # TODO add for DLVRY_SYSTM_CD from phmcy claim
-  return <- rtm_expr 
+  rtm_exprDf = selectExpr(mbrdf, "*", "case when BNFT_PLAN_RCP_OPTNS_MAIL_IND = 'Y' then 'Y' else 'N' end  as RTM_IND") # TODO add for DLVRY_SYSTM_CD from phmcy claim
+  
+  #print(head(select(rtm_exprDf, "BNFT_PLAN_RCP_OPTNS_MAIL_IND", "RTM_IND")))
+  return <- rtm_exprDf 
 }
 
 ########################################################################################################
@@ -92,7 +96,9 @@ maintenanceChoiceVoluntryIndicator <- function(mbrdf) {
                               (BNFT_PLAN_RCP_OPTNS_MAINT_CHOICE_TYP_CD ='MV' 
                               and PHMCY_DAY_SPLY_QTY >=84  AND 
                               PHMCY_DENORM_CVS_RTL_IND = 'N' AND PHMCY_DENORM_CVS_MAIL_IND='N' )
-                              then 'Y' else 'N' end  as MCV_IND") 
+                              then 'Y' else 'N' end  as MCV_IND")
+  
+  #print(head(select(maintenanceChoiceVoluntryIndicatorDF, "PHMCY_CLM_EVNT_GID", "BNFT_PLAN_RCP_OPTNS_MAINT_CHOICE_TYP_CD", "PHMCY_DAY_SPLY_QTY" , "PHMCY_DLVRY_SYSTM_CD", "PHMCY_DENORM_CVS_RTL_IND", "PHMCY_DENORM_CVS_MAIL_IND", "MCV_IND" )))
   return <- maintenanceChoiceVoluntryIndicatorDF 
 }
 ########################################################################################################
@@ -117,7 +123,9 @@ maintenanceChoiceVoluntryIndicator <- function(mbrdf) {
   # case when drg.DEA_CLS_CD in ('0',' ') then 'N' else 'Y'
 
 controlledSubstanceInd <- function(tableDf) { 
-  return <- selectExpr(tableDf, "*", "case when DRUG_DEA_CLS_CD in ('0',' ') then 'N' else 'Y' end as CONTROLLED_SUBSTANCE_IND ")
+  controlledSubstanceIndDf <- selectExpr(tableDf, "*", "case when DRUG_DEA_CLS_CD in ('0',' ') then 'N' else 'Y' end as CONTROLLED_SUBSTANCE_IND ")
+  #print(head(select(controlledSubstanceIndDf, "DRUG_DEA_CLS_CD" , "CONTROLLED_SUBSTANCE_IND")))
+  return <- controlledSubstanceIndDf 
 
 }
 
@@ -147,12 +155,14 @@ cmpgnMbrOpptyTable <- function(joineddf) {
 ########################################################################################################
 saveToHdfs <- function(df, host, path) {
   writeToHdfs(df, host,path)
-  print("do")
+  print("done !!!")
 }
 
 ########################################################################################################
 
+
 print("Starting")
+
 source('~/demo/init.R')
 print("initialization done")
 source('~/demo/spark_api.R')
@@ -161,17 +171,18 @@ source('~/demo/myhelper.R')
 source('~/demo/iw_tools.R')
 source('~/demo/cvs_mo_transformations.R')
 source('~/demo/iw_hdfsUtil.R')
-
+LoadSources(iw.sources.POC_MBR_OPPTY)
 print("Phase 1 join starting")
 
+iwdf = "" 
 completeTable = prepare_p2_table(iw.sources.POC_MBR_OPPTY)
-print(head(completeTable))
+#print(head(select(completeTable, "PHMCY_CLM_EVNT_GID", "PHMCY_DAY_SPLY_QTY", "MBR_ACC_MBR_BRTH_DT", "MBR_ACC_CVRG_CVRG_EFF_DT", "MBR_ACC_CVRG_CVRG_EXPRN_DT", "BNFT_PLAN_RCP_OPTNS_MAIL_IND", "BNFT_PLAN_RCP_OPTNS_MAINT_CHOICE_TYP_CD", "PHMCY_DENORM_CVS_RTL_IND", "PHMCY_DENORM_CVS_MAIL_IND")))
 
 stdDaySupplyDF = stdDaySupply(completeTable)
 #print(head(stdDaySupplyDF))
 
 age_added_view = memberCurrentAge(stdDaySupplyDF)
-print(head(age_added_view))
+#print(head(age_added_view))
 
 minorInd_added_view = minorIndicator(age_added_view)
 #print(head(minorInd_added_view))
