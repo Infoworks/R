@@ -16,11 +16,11 @@ aliasDF <- function(df, alias_prefix, uppercase = FALSE) {
   return (df)
 }
 
-printDf <- function(df, name) {
+printDf <- function(df, name, numRows=20) {
   print("VVVVVVVVVVVVVVVVVVVV")
   print(name)
   print(names(df))
-  showDF(df)
+  showDF(df, numRows)
   print(name)
   print("^^^^^^^^^^^^^^^^^^^^^^^^")
 }

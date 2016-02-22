@@ -72,7 +72,7 @@ InitSpark <- function(sparkMaster, hdfs_url) {
 
 Init <- function(db="infoworks-new", host="localhost", port='27017',
                  username='infoworks', password='IN11**rk',
-                 sparkMaster = 'local', hdfs_url = "hdfs://ip-10-37-200-15.ec2.internal:8020") {
+                 sparkMaster = 'local[3]', hdfs_url = "hdfs://ip-10-37-200-15.ec2.internal:8020") {
   InitMongo(db, host, port, username, password)
   InitSpark(sparkMaster, hdfs_url)
 }
