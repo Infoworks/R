@@ -1,4 +1,6 @@
 source('iw_init.R')
+iw_init()
+
 print("initialization done")
 source('iw_spark.R')
 source('iw_mongo.R')

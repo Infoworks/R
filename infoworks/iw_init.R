@@ -46,12 +46,7 @@ InitMongo <- function(db, host, port, username, password)
 
 InitSpark <- function(sparkMaster, hdfs_url) {
   #------ spark initialize ----
-  
-  # Set this to where Spark is installed
-  Sys.setenv(SPARK_HOME="/home/rstudio/spark-1.5.2-bin-hadoop2.6/")
-  #Sys.setenv(SPARK_HOME="/home/rstudio/sparkcode/spark-1.6.0")
-  #Sys.setenv(SPARK_HOME="/usr/hdp/current/spark-client")
-  
+   
   # This line loads SparkR from the installed directory
   .libPaths(c(file.path(Sys.getenv("SPARK_HOME"), "R", "lib"), .libPaths()))
   library(SparkR)
@@ -70,10 +65,21 @@ InitSpark <- function(sparkMaster, hdfs_url) {
   print(hdfs_url)
 }
 
-Init <- function(db="infoworks-new", host="localhost", port='27017',
+iw_init <- function(db="infoworks-new", host="localhost", port='27017',
                  username='infoworks', password='IN11**rk',
-                 sparkMaster = 'local[3]', hdfs_url = "hdfs://ip-10-37-200-15.ec2.internal:8020") {
+                 sparkMaster = 'local[10]', hdfs_url = "hdfs://ip-172-30-0-245.ec2.internal:8020") {
+
+  #hdfs://ip-172-30-0-245.ec2.internal:8020    demo
+  #hdfs://ip-10-37-200-15.ec2.internal:8020    demo backup
+
   InitMongo(db, host, port, username, password)
+
+
+  # Set this to where Spark is installed
+  #demo
+  Sys.setenv(SPARK_HOME="/home/rstudio/spark-1.4.0-bin-hadoop2.6")
+  #demo backup
+  #Sys.setenv(SPARK_HOME="/home/rstudio/spark-1.5.2-bin-hadoop2.6/")
   InitSpark(sparkMaster, hdfs_url)
 }
 
@@ -81,4 +87,4 @@ Init <- function(db="infoworks-new", host="localhost", port='27017',
 
 # Use config file or get config parameters from iw web app api
 
-Init()
+#Init()
