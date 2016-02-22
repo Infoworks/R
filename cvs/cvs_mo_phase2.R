@@ -1,5 +1,6 @@
-rm(list = ls(), envir = .GlobalEnv) 
 # Transformations
+source('cvs_mo_phase1.R')
+
 
 ffmInd <- function(latestClaimData) {
 # To mark a claim as first fill mail by checking V_PHMCY_CLM.DLVRY_SYSTM_CD is equal to 'M' in the 
@@ -161,45 +162,38 @@ saveToHdfs <- function(df, host, path) {
 ########################################################################################################
 
 
-print("Starting")
+prepareMoCampaignTable <- function() {
 
-source('~/demo/init.R')
-print("initialization done")
-source('~/demo/spark_api.R')
-source('~/demo/mongo_api.R')
-source('~/demo/myhelper.R')
-source('~/demo/iw_tools.R')
-source('~/demo/cvs_mo_transformations.R')
-source('~/demo/iw_hdfsUtil.R')
-LoadSources(iw.sources.POC_MBR_OPPTY)
-print("Phase 1 join starting")
+  LoadSources(iw.sources.POC_MBR_OPPTY)
+  print("Phase 1 join starting")
 
-iwdf = "" 
-completeTable = prepare_p2_table(iw.sources.POC_MBR_OPPTY)
-#print(head(select(completeTable, "PHMCY_CLM_EVNT_GID", "PHMCY_DAY_SPLY_QTY", "MBR_ACC_MBR_BRTH_DT", "MBR_ACC_CVRG_CVRG_EFF_DT", "MBR_ACC_CVRG_CVRG_EXPRN_DT", "BNFT_PLAN_RCP_OPTNS_MAIL_IND", "BNFT_PLAN_RCP_OPTNS_MAINT_CHOICE_TYP_CD", "PHMCY_DENORM_CVS_RTL_IND", "PHMCY_DENORM_CVS_MAIL_IND")))
+  iwdf = "" 
+  completeTable = prepare_p2_table(iw.sources.POC_MBR_OPPTY)
+  #print(head(select(completeTable, "PHMCY_CLM_EVNT_GID", "PHMCY_DAY_SPLY_QTY", "MBR_ACC_MBR_BRTH_DT", "MBR_ACC_CVRG_CVRG_EFF_DT", "MBR_ACC_CVRG_CVRG_EXPRN_DT", "BNFT_PLAN_RCP_OPTNS_MAIL_IND", "BNFT_PLAN_RCP_OPTNS_MAINT_CHOICE_TYP_CD", "PHMCY_DENORM_CVS_RTL_IND", "PHMCY_DENORM_CVS_MAIL_IND")))
 
-stdDaySupplyDF = stdDaySupply(completeTable)
-#print(head(stdDaySupplyDF))
+  stdDaySupplyDF = stdDaySupply(completeTable)
+  #print(head(stdDaySupplyDF))
 
-age_added_view = memberCurrentAge(stdDaySupplyDF)
-#print(head(age_added_view))
+  age_added_view = memberCurrentAge(stdDaySupplyDF)
+  #print(head(age_added_view))
 
-minorInd_added_view = minorIndicator(age_added_view)
-#print(head(minorInd_added_view))
+  minorInd_added_view = minorIndicator(age_added_view)
+  #print(head(minorInd_added_view))
 
-mbr_elig_view = mbrEligIndicator(minorInd_added_view)
-#print(head(mbr_elig_view))
+  mbr_elig_view = mbrEligIndicator(minorInd_added_view)
+  #print(head(mbr_elig_view))
 
-rtm_ind_view = retailToMailIndicator(mbr_elig_view)
-#print(head(rtm_ind_view))
+  rtm_ind_view = retailToMailIndicator(mbr_elig_view)
+  #print(head(rtm_ind_view))
 
-maintenanceChoiceVoluntryIndicatorDF = maintenanceChoiceVoluntryIndicator(rtm_ind_view)
-#print(head(maintenanceChoiceVoluntryIndicatorDF)) 
+  maintenanceChoiceVoluntryIndicatorDF = maintenanceChoiceVoluntryIndicator(rtm_ind_view)
+  #print(head(maintenanceChoiceVoluntryIndicatorDF)) 
 
-controlledSubstanceIndDf = controlledSubstanceInd(maintenanceChoiceVoluntryIndicatorDF)
-#print(head(maintenanceChoiceVoluntryIndicatorDF)) 
+  controlledSubstanceIndDf = controlledSubstanceInd(maintenanceChoiceVoluntryIndicatorDF)
+  #print(head(maintenanceChoiceVoluntryIndicatorDF)) 
 
-cmpgnMbrOpptyTableDf = cmpgnMbrOpptyTable(controlledSubstanceIndDf)
-print(head(cmpgnMbrOpptyTableDf))
-saveToHdfs(cmpgnMbrOpptyTableDf, "ip-10-37-200-15.ec2.internal", "/tmp/final_mo_cmpgn/")
+  cmpgnMbrOpptyTableDf = cmpgnMbrOpptyTable(controlledSubstanceIndDf)
 
+  return (cmpgnMbrOpptyTableDf)
+
+}

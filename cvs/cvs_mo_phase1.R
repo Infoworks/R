@@ -1,10 +1,3 @@
-transform_NORMALIZED_DAY_SPLY_QTY <- function(table) {
-  #Transformation for NORMALIZED_DAY_SPLY_QTY
-  mutatedDF <- selectExpr(table, "(CASE WHEN DAY_SPLY_QTY BETWEEN 1 AND 33  THEN 30 WHEN DAY_SPLY_QTY BETWEEN 34 AND 83 THEN  60 WHEN DAY_SPLY_QTY >=84 THEN 90 END) as NORMALIZED_DAY_SPLY_QTY")
-  return (mutatedDF)
-}
-
-
 #Prepares the base table for phase 1
 prepare_p1_ClaimBaseTableDF <- function(iwdfs) {
 
