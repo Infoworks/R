@@ -184,8 +184,8 @@ prepare_p2_table <- function(iwdfs) {
   iwdfs.BNFT_PLAN_RCP_OPTNS, iwdfs.BNFT_PLAN_RCP_OPTNS$BNFT_PLAN_RCP_OPTNS_STUS_CD == 'A')
   #join to table on LVL1_ACCT_GID AND LVL3_ACCT_GID
   targetTable <- join(targetTable, iwdfs.BNFT_PLAN_RCP_OPTNS,
-    targetTable$PHMCY_LVL1_ACCT_GID == iwdfs.CLNT_ACCT_DENORM$CLNT_ACCT_DENORM_LVL1_ACCT_GID
-    & targetTable$PHMCY_LVL3_ACCT_GID == iwdfs.CLNT_ACCT_DENORM$CLNT_ACCT_DENORM_LVL3_ACCT_GID)
+    targetTable$PHMCY_LVL1_ACCT_GID == iwdfs.BNFT_PLAN_RCP_OPTNS$BNFT_PLAN_RCP_OPTNS_LVL1_ACCT_GID
+    & targetTable$PHMCY_LVL3_ACCT_GID == iwdfs.BNFT_PLAN_RCP_OPTNS$BNFT_PLAN_RCP_OPTNS_LVL3_ACCT_GID)
 
 
   #To join V_MBR_PGM_RX_SCHD_HIST
@@ -215,7 +215,5 @@ prepare_p2_table <- function(iwdfs) {
     targetTable$MBR_ACCT_HRCHY_MBR_ACCT_GID == iwdfs.MBR_PGM_RX_SCHD_HIST$MBR_PGM_RX_SCHD_HIST_SCHD_ENRL_BNFCY_ID,
     'left_outer')
 
-
-  printDf(targetTable, "targetTable")
-
+  return (targetTable)
 }

@@ -1,1 +1,31 @@
 .project
+
+#ignoring directories#
+#####################
+#bin/
+#code/out
+#code/bin
+#code/target
+#out
+
+# Compiled Source #
+###################
+*.class
+#*.pig
+#*.hive
+*.swp
+*.settings
+*.prefs
+*.manifest
+target/
+
+
+# IDE Files #
+#############
+.idea/
+*.iml
+*.project
+*.classpath
+
+.project
+
