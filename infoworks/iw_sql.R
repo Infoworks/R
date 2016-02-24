@@ -76,6 +76,24 @@ iwJoinTables <- function(iwTable1, iwTable2, joinCondition, joinType = 'inner', 
 
 
 ###########################################################################################################
+#join tables
+#params
+#iwTable1 Infoworks table reference
+#iwTable2 Infoworks table reference
+#joinCondition Condition for joining iwTable1 and iwTable2
+#joinType Type of Join: "inner", "outer", "left_outer", "right_outer", "semijoin". Default joinType: "inner"
+#filterCondition Any filter condition to be applied
+#selectCols List of columns to be selected from the join output
+#outColPrefix Prefix applied for all columns in the table passed. Applied last
+#
+iwLeftOuterJoinTables <- function(iwTable1, iwTable2, joinCondition, filterCondition = NULL, selectCols=NULL, outColPrefix=NULL) {
+  return (iwJoinTables(iwTable1, iwTable2, joinCondition, 'left_outer', filterCondition = NULL, selectCols=NULL, outColPrefix=NULL))
+}
+
+###########################################################################################################
+
+
+###########################################################################################################
 #group by on columns and provide select columns
 #params
 #iwTable Infoworks table reference

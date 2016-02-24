@@ -20,7 +20,6 @@ prepare_p1_ClaimBaseTableDF <- function() {
   joinedTable <- iwJoinTables(
     drugDenorm, iwJoinTables(phmcyClm, mbrAcctHist, "PHMCY_MBR_ACCT_GID = MBR_ACC_MBR_ACCT_GID"),
     "PHMCY_DRUG_PROD_GID = DRUG_DRUG_PROD_GID")
-
   return (joinedTable)
 }
 
@@ -53,7 +52,6 @@ prepare_p1_maxClmEventGid <- function(claimBaseTable) {
   maxClmEventGidTable <- iwGroupBy(maxClmEventGidTable, 
     "MBR_ACC_EPH_LINK_ID, DRUG_GPI4_CD, PHMCY_FILL_DT", "MCEGT",
     "MAX(PHMCY_CLM_EVNT_GID) AS MAX_CLM_EVNT_GID")
-
   return (maxClmEventGidTable)
 }
 
@@ -72,12 +70,58 @@ prepare_p1_LatestClaimTable <- function()  {
   latestClaimBaseTable <- iwJoinTables(claimBaseTable, maxClmEventGidTable,
      "MBR_ACC_EPH_LINK_ID = MCEGT_MBR_ACC_EPH_LINK_ID AND DRUG_GPI4_CD = MCEGT_DRUG_GPI4_CD AND PHMCY_FILL_DT = MCEGT_PHMCY_FILL_DT AND PHMCY_CLM_EVNT_GID = MCEGT_MAX_CLM_EVNT_GID",
      selectCols = names(claimBaseTable))
-
   return (latestClaimBaseTable)
 }
 
-prepare_p2_table <- function(iwdfs) {
+prepare_p2_table <- function() {
   
   latestClaimTable <- prepare_p1_LatestClaimTable()
   
+  #JOIN V_MBR_ACCT_CVRG ON MBR_ACCT_GID
+  #LEFT OUTER JOIN V_MBR_ACCT_CONT_CVRG ON MBR_ACCT_GID
+  #JOIN V_CLNT_ACCT_DENORM ON LVL1_ACCT_GID AND LVL3_ACCT_GID TODO Missing filter of CURR_IND = 'Y' ..  NOT REQUIRED
+  #JOIN V_PHMCY_DENORM ON PHMCY_PHMCY_PTY_GID
+    #TODO MISSING TABLE PRSCBR_DENORM
+  #JOIN V_BNFT_PLAN_RXC_CAG_PLAN_OPTNS ON LVL1_ACCT_GID AND LVL3_ACCT_GID with filter STUS_CD = 'A'
+  #LEFT OUTER JOIN V_MBR_ACCT_HRCHY ON MBR_ACCT_GID with filter SRC_CD = 'Q'
+    #LEFT OUTER JOIN V_MBR_PGM_RX_SCHD_HIST ON MBR_ACCT_ID = V_MBR_PGM_RX_SCHD_HIST.QL_BNFCY_ID
+  
+  targetTable <-
+    iwLeftOuterJoinTables( #7
+      iwLeftOuterJoinTables( #6
+        iwJoinTables( #5
+          iwJoinTables( #4
+            iwJoinTables( #3
+              iwLeftOuterJoinTables( #2
+                iwJoinTables( #1
+                  latestClaimTable,
+                  iwSelectTable(POC_MBR_OPPTY.V_MBR_ACCT_CVRG, colPrefix = "MBR_ACC_CVRG"),
+                  "MBR_ACC_MBR_ACCT_GID = MBR_ACC_CVRG_MBR_ACCT_GID"
+                ), #1 JOIN V_MBR_ACCT_CVRG ON MBR_ACCT_GID
+                
+                iwSelectTable(POC_MBR_OPPTY.V_MBR_ACCT_CONT_CVRG, colPrefix = "MBR_ACC_CONT_CVRG"),
+                "MBR_ACC_MBR_ACCT_GID = MBR_ACC_CONT_CVRG_MBR_ACCT_GID"
+              ), #2 LEFT OUTER JOIN V_MBR_ACCT_CONT_CVRG ON MBR_ACCT_GID
+              
+              iwSelectTable(POC_MBR_OPPTY.V_CLNT_ACCT_DENORM, colPrefix = "CLNT_ACCT_DENORM"),
+              "PHMCY_LVL1_ACCT_GID = CLNT_ACCT_DENORM_LVL1_ACCT_GID AND PHMCY_LVL3_ACCT_GID = CLNT_ACCT_DENORM_LVL3_ACCT_GID"
+            ), #3 JOIN V_CLNT_ACCT_DENORM ON LVL1_ACCT_GID AND LVL3_ACCT_GID TODO Missing filter of CURR_IND = 'Y' ..  NOT REQUIRED
+            
+            iwSelectTable(POC_MBR_OPPTY.V_PHMCY_DENORM, colPrefix = "PHMCY_DENORM"),
+            "PHMCY_PHMCY_PTY_GID = PHMCY_DENORM_PHMCY_PTY_GID"
+          ), #4 JOIN V_PHMCY_DENORM ON PHMCY_PHMCY_PTY_GID
+          
+          iwSelectTable(POC_MBR_OPPTY.V_BNFT_PLAN_RXC_CAG_PLAN_OPTNS, "STUS_CD = 'A'", "BNFT_PLAN_RCP_OPTNS"),
+          "PHMCY_LVL1_ACCT_GID = BNFT_PLAN_RCP_OPTNS_LVL1_ACCT_GID AND PHMCY_LVL3_ACCT_GID = BNFT_PLAN_RCP_OPTNS_LVL3_ACCT_GID"
+        ), #5 JOIN V_BNFT_PLAN_RXC_CAG_PLAN_OPTNS ON LVL1_ACCT_GID AND LVL3_ACCT_GID with filter STUS_CD = 'A'
+        
+        iwSelectTable(POC_MBR_OPPTY.V_MBR_ACCT_HRCHY, "SRC_CD = 'Q'", "MBR_ACCT_HRCHY"),
+        "MBR_ACC_MBR_ACCT_GID = MBR_ACCT_HRCHY_MBR_ACCT_GID"
+      ), #6 LEFT OUTER JOIN V_MBR_ACCT_HRCHY ON MBR_ACCT_GID with filter SRC_CD = 'Q'
+    
+      iwSelectTable(POC_MBR_OPPTY.V_MBR_PGM_RX_SCHD_HIST, colPrefix =  "MBR_PGM_RX_SCHD_HIST"),
+      "MBR_ACCT_HRCHY_MBR_ACCT_GID = MBR_PGM_RX_SCHD_HIST_SCHD_ENRL_BNFCY_ID"
+    ) #7 LEFT OUTER JOIN V_MBR_PGM_RX_SCHD_HIST ON MBR_ACCT_ID = V_MBR_PGM_RX_SCHD_HIST.QL_BNFCY_ID
+  
+  return (targetTable)
 }
