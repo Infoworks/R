@@ -93,7 +93,6 @@ iwGroupBy <- function(iwTable, groupByCondition, outColPrefix=NULL, ...) {
 
   cols <- paste(groupByCondition, list(...), sep = ", ", collapse = "")
   sqlToRun <- paste("SELECT ", cols," FROM ", tbl1Alias, " GROUP BY ", groupByCondition)
-  print(sqlToRun)
   groupedTableDf <- sql(hivecontext, sqlToRun)
   
   #apply col name prefix if required
