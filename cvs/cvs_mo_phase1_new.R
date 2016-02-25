@@ -123,5 +123,12 @@ prepare_p2_table <- function() {
       "MBR_ACCT_HRCHY_MBR_ACCT_GID = MBR_PGM_RX_SCHD_HIST_SCHD_ENRL_BNFCY_ID"
     ) #7 LEFT OUTER JOIN V_MBR_PGM_RX_SCHD_HIST ON MBR_ACCT_ID = V_MBR_PGM_RX_SCHD_HIST.QL_BNFCY_ID
   
+  #compute the the MAIL_IND_CNT_FOR_EPHLINK count
+  targetTable <- iwJoinTables(targetTable,
+     iwGroupBy(targetTable, "MBR_ACC_EPH_LINK_ID", "EPH_GRP",
+        "SUM(CASE WHEN PHMCY_DLVRY_SYSTM_CD == 'M' THEN 1 ELSE 0 END) AS MAIL_IND_CNT_FOR_EPHLINK"),
+     "MBR_ACC_EPH_LINK_ID = EPH_GRP_MBR_ACC_EPH_LINK_ID")
+  
+  
   return (targetTable)
 }

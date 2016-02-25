@@ -30,10 +30,12 @@ iwSelectTable <- function(iwTable, filterCondition = NULL, colPrefix = NULL) {
 #select the table
 #params
 #iwTable Infoworks table reference
+#col one column expression
 #... select expressions
 #
 iwSelect <- function(iwTable, ...) {
-  return (select(iwTable, ...))
+  #col_exprs <- lapply(list(...), function(x) {return (x)} )
+  return (selectExpr(iwTable, ...))
 }
 ###########################################################################################################
 

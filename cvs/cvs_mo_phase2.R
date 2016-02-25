@@ -167,8 +167,8 @@ cmpgnMbrOpptyTable <- function(joineddf) {
              " PHMCY_DAY_SPLY_QTY as DAY_SPLY_QTY", "NORMALIZED_DAY_SPLY_QTY as NORMALIZED_DAY_SPLY_QTY", " PHMCY_ADJD_FRMLY_CD as ADJD_FRMLY_CD", 
              " PHMCY_MEDD_CLM_IND as MEDD_CLM_IND", " MBR_ACC_GNDR_CD as GNDR_CD",  " MBR_CURR_AGE as MBR_CURR_AGE", 
              " MINOR_IND as MINOR_IND", " MBR_CURR_ELIG_IND as MBR_CURR_ELIG_IND", " RTM_IND as RTM_IND", "MCV_IND as MCV_IND", 
-             # TODO " as RFM_IND", 
-              " FFM_IND as FFM_IND", 
+             " RFM_IND as RFM_IND", 
+             " FFM_IND as FFM_IND", 
              " CONTROLLED_SUBSTANCE_IND as CONTROLLED_SUBSTANCE_IND", " DRUG_BUS_MAINT_IND as MAINTENANCE_IND", 
              " PHMCY_PHMCY_LTC_IND as PHMCY_LTC_IND", " DRUG_SPCLT_DRUG_IND as SPCLT_DRUG_IND", paste("'" ,Sys.time() , "'" ," as CREATE_TMS", sep = ""))
   
