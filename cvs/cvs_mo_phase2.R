@@ -3,19 +3,31 @@ source('cvs/cvs_mo_phase1.R')
 
 
 ffmInd <- function(latestClaimData) {
-# To mark a claim as first fill mail by checking V_PHMCY_CLM.DLVRY_SYSTM_CD is equal to 'M' in the 
-# last 6 months excluding the latest records .  
-  # select min(fill_dt) for each EPH_LINK_ID
+  #An indicator, based on business logic, to denote whether the opportunity qualifies for the First Fill at Mail Product
+	#Y - Yes
+	#N - No"	When corresponding client value has a 
+  #V_BNFT_PLAN_RXC_CAG_PLAN_OPTNS.MAIL_IND = 'Y' and most recent claim record V_PHMCY_CLM.DLVRY_SYSTM_CD = 'M' and 
+  # no other records for the same V_MBR_ACCT_HIST.EPH_LINK_ID have V_PHMCY_CLM.DLVRY_SYSTM_CD = 'M'then 'Y' else 'N'
+ 
+  #  Q : "no other records for the same" , is it for 180 days or for whole time?
   
-  # TODO Remove this join as we would get latest claim data full
-  mbrAcctHist = SelectDF(POC_MBR_OPPTY.V_MBR_ACCT_HIST)
-  joinedmbr = join(latestClaimData, mbrAcctHist, latestClaimData$MBR_ACCT_GID == mbrAcctHist$MBR_ACCT_GID, "inner")
-  aggregatedOldestClaim = agg(groupBy(joinedmbr, "eph_link_id", "GPI4_CD"), "fill_dt" -> "min")
+  #anEphRecord = selectExpr(latestClaimData,  "case when BNFT_PLAN_RCP_OPTNS_MAIL_IND = 'Y' and 
+  #                                        V_PHMCY_CLM.DLVRY_SYSTM_CD = 'M' THEN 'N end as FFM_IND ")
+
   
-  # join with latestclaim to get records for min fill_dt
-  join(aggregatedOldestClaim, latestClaimData,  "")
+  ephlinkGrp =  iwGroupBy(latestClaimData, "MBR_ACC_EPH_LINK_ID", "EPH_GRP", 
+                          "SUM(CASE WHEN PHMCY_DLVRY_SYSTM_CD == 'M' THEN 1 else 0 END) as  
+                      MAIL_IND_CNT_FOR_EPHLINK")
   
-  selectExpr(latestClaimData, "*", "")
+  print(head(ephlinkGrp))
+  # now for this  eph link id , if its 0 then it means there was no M 
+  ephs = iwJoinTables(latestClaimData, ephlinkGrp, joinCondition = "MBR_ACC_EPH_LINK_ID = EPH_GRP_MBR_ACC_EPH_LINK_ID" )
+  
+  derivedffm_ind = selectExpr(ephs, "*", "case when BNFT_PLAN_RCP_OPTNS_MAIL_IND = 'Y' AND  
+                                               PHMCY_DLVRY_SYSTM_CD   = 'M' AND 
+                                               EPH_GRP_MAIL_IND_CNT_FOR_EPHLINK = 1 
+                                               THEN 'Y' ELSE 'N' end as FFM_IND ")
+  return <- derivedffm_ind
 } 
 
 
@@ -77,7 +89,8 @@ mbrEligIndicator <- function(mbrdf) {
 # and most recent claim record DLVRY_SYSTM_CD = 'R' then 'Y' else 'N' 
 
 retailToMailIndicator <- function(mbrdf) {
-  rtm_exprDf = selectExpr(mbrdf, "*", "case when BNFT_PLAN_RCP_OPTNS_MAIL_IND = 'Y' then 'Y' else 'N' end  as RTM_IND") # TODO add for DLVRY_SYSTM_CD from phmcy claim
+  rtm_exprDf = selectExpr(mbrdf, "*", "case when BNFT_PLAN_RCP_OPTNS_MAIL_IND = 'Y' and 
+                                      PHMCY_DLVRY_SYSTM_CD = 'R' then 'Y' else 'N' end  as RTM_IND")
   
   #print(head(select(rtm_exprDf, "BNFT_PLAN_RCP_OPTNS_MAIL_IND", "RTM_IND")))
   return <- rtm_exprDf 
@@ -102,6 +115,7 @@ maintenanceChoiceVoluntryIndicator <- function(mbrdf) {
   #print(head(select(maintenanceChoiceVoluntryIndicatorDF, "PHMCY_CLM_EVNT_GID", "BNFT_PLAN_RCP_OPTNS_MAINT_CHOICE_TYP_CD", "PHMCY_DAY_SPLY_QTY" , "PHMCY_DLVRY_SYSTM_CD", "PHMCY_DENORM_CVS_RTL_IND", "PHMCY_DENORM_CVS_MAIL_IND", "MCV_IND" )))
   return <- maintenanceChoiceVoluntryIndicatorDF 
 }
+
 ########################################################################################################
 #When the MBR_ACCT_GIDs has a SCH_PGM_ID in (5383,5384) and SCHD_OPT_IN_PRCS_SRC_CD in (‘PTL’,’CPT’,’PSV’,’CPV’) and SCHD_OPT_OUT_DT of NULL or open ended.
 
@@ -114,10 +128,17 @@ maintenanceChoiceVoluntryIndicator <- function(mbrdf) {
 #PSV = Enrolled by phone
 #CPV = Copy from enrolled by phone.
 
-#readyFillAtMailIndicator < function(tableDf) {
+readyFillAtMailIndicator <- function(tableDf) {
+  readyFillAtMailIndicatorDF = selectExpr(tableDf, "*",  
+                               "CASE WHEN MBR_PGM_RX_SCHD_HIST_SCH_PGM_ID in (5383,5384)  AND
+                                MBR_PGM_RX_SCHD_HIST_SCHD_OPT_IN_PRCS_SRC_CD in ('PTL','CPT','PSV','CPV') and 
+ 			                          (MBR_PGM_RX_SCHD_HIST_SCHD_OPT_OUT_DT is NULL OR 
+                                 MBR_PGM_RX_SCHD_HIST_SCHD_OPT_OUT_DT = '') THEN 'Y' ELSE 'N' end as RFM_IND")
   
- # return <- tableDf ;  
-#}
+  print(head(readyFillAtMailIndicatorDF)) 
+  return <- readyFillAtMailIndicatorDF 
+   
+}
 
 ########################################################################################################
 
@@ -147,7 +168,7 @@ cmpgnMbrOpptyTable <- function(joineddf) {
              " PHMCY_MEDD_CLM_IND as MEDD_CLM_IND", " MBR_ACC_GNDR_CD as GNDR_CD",  " MBR_CURR_AGE as MBR_CURR_AGE", 
              " MINOR_IND as MINOR_IND", " MBR_CURR_ELIG_IND as MBR_CURR_ELIG_IND", " RTM_IND as RTM_IND", "MCV_IND as MCV_IND", 
              # TODO " as RFM_IND", 
-             # TODO " as FFM_IND", 
+              " FFM_IND as FFM_IND", 
              " CONTROLLED_SUBSTANCE_IND as CONTROLLED_SUBSTANCE_IND", " DRUG_BUS_MAINT_IND as MAINTENANCE_IND", 
              " PHMCY_PHMCY_LTC_IND as PHMCY_LTC_IND", " DRUG_SPCLT_DRUG_IND as SPCLT_DRUG_IND", paste("'" ,Sys.time() , "'" ," as CREATE_TMS", sep = ""))
   
@@ -167,11 +188,11 @@ prepareMoCampaignTable <- function() {
   LoadSources(iw.sources.POC_MBR_OPPTY)
   print("Phase 1 join starting")
 
-  iwdf = "" 
   completeTable = prepare_p2_table(iw.sources.POC_MBR_OPPTY)
-  #print(head(select(completeTable, "PHMCY_CLM_EVNT_GID", "PHMCY_DAY_SPLY_QTY", "MBR_ACC_MBR_BRTH_DT", "MBR_ACC_CVRG_CVRG_EFF_DT", "MBR_ACC_CVRG_CVRG_EXPRN_DT", "BNFT_PLAN_RCP_OPTNS_MAIL_IND", "BNFT_PLAN_RCP_OPTNS_MAINT_CHOICE_TYP_CD", "PHMCY_DENORM_CVS_RTL_IND", "PHMCY_DENORM_CVS_MAIL_IND")))
+  #print(head(completeTable))  #, "PHMCY_CLM_EVNT_GID"))) #, "PHMCY_DAY_SPLY_QTY", "MBR_ACC_MBR_BRTH_DT", "MBR_ACC_CVRG_CVRG_EFF_DT", "MBR_ACC_CVRG_CVRG_EXPRN_DT", "BNFT_PLAN_RCP_OPTNS_MAIL_IND", "BNFT_PLAN_RCP_OPTNS_MAINT_CHOICE_TYP_CD", "PHMCY_DENORM_CVS_RTL_IND", "PHMCY_DENORM_CVS_MAIL_IND")))
 
-  stdDaySupplyDF = stdDaySupply(completeTable)
+  ffmIndDf = ffmInd(completeTable) 
+  stdDaySupplyDF = stdDaySupply(ffmIndDf)
   #print(head(stdDaySupplyDF))
 
   age_added_view = memberCurrentAge(stdDaySupplyDF)
@@ -189,7 +210,9 @@ prepareMoCampaignTable <- function() {
   maintenanceChoiceVoluntryIndicatorDF = maintenanceChoiceVoluntryIndicator(rtm_ind_view)
   #print(head(maintenanceChoiceVoluntryIndicatorDF)) 
 
-  controlledSubstanceIndDf = controlledSubstanceInd(maintenanceChoiceVoluntryIndicatorDF)
+  readyFillAtMailIndicatorDF = readyFillAtMailIndicator(maintenanceChoiceVoluntryIndicatorDF)
+  
+  controlledSubstanceIndDf = controlledSubstanceInd(readyFillAtMailIndicatorDF)
   #print(head(maintenanceChoiceVoluntryIndicatorDF)) 
 
   cmpgnMbrOpptyTableDf = cmpgnMbrOpptyTable(controlledSubstanceIndDf)
