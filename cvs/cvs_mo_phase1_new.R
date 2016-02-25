@@ -10,15 +10,15 @@ prepare_p1_ClaimBaseTableDF <- function() {
   #)  T0
   
   #load pharmacy claim (V_PHMCY_CLM)
-  phmcyClm <- iwSelectTable(POC_MBR_OPPTY_SAMPLE.V_PHMCY_CLM_N, "COB_CD = 'PRMRY' AND datediff(from_unixtime(unix_timestamp()), FILL_DT) < 180", "PHMCY")
+  phmcyClm <- iwSelectTable(V_PHMCY_CLM.V_PHMCY_CLM, "COB_CD = 'PRMRY' AND datediff(from_unixtime(unix_timestamp()), FILL_DT) < 180", "PHMCY")
   #load mbr acct hist (V_MBR_ACCT_HIST)
-  mbrAcctHist <- iwSelectTable(POC_MBR_OPPTY_SAMPLE.V_MBR_ACCT_HIST, "EPH_LINK_ID IS NOT NULL AND EPH_LINK_ID != 0 AND REC_SRC_FLG = 'Y'", "MBR_ACC")
+  mbrAcctHist <- iwSelectTable(V_MBR_ACCT_HIST.V_MBR_ACCT_HIST, "EPH_LINK_ID IS NOT NULL AND EPH_LINK_ID != 0 AND REC_SRC_FLG = 'Y'", "MBR_ACC")
   #load drug denorm
-  drugDenorm <- iwSelectTable(POC_MBR_OPPTY_SAMPLE.V_DRUG_DENORM, colPrefix="DRUG")
+  drugDenorm <- iwSelectTable(V_PHMCY_DENORM.V_DRUG_DENORM, colPrefix="DRUG")
   
   #join (mbr acct and phmcy clm) and drug denorm
   joinedTable <- iwJoinTables(
-    drugDenorm, iwJoinTables(phmcyClm, mbrAcctHist, "PHMCY_MBR_ACCT_GID = MBR_ACC_MBR_ACCT_GID"),
+    drugDenorm, iwJoinTables(phmcyClm, mbrAcctHist, "PHMCY_MBR_ACCT_GID = MBR_ACC_ACCT_GID"),
     "PHMCY_DRUG_PROD_GID = DRUG_DRUG_PROD_GID")
   return (joinedTable)
 }
@@ -95,31 +95,31 @@ prepare_p2_table <- function() {
               iwLeftOuterJoinTables( #2
                 iwJoinTables( #1
                   latestClaimTable,
-                  iwSelectTable(POC_MBR_OPPTY_SAMPLE.V_MBR_ACCT_CVRG, colPrefix = "MBR_ACC_CVRG"),
-                  "MBR_ACC_MBR_ACCT_GID = MBR_ACC_CVRG_MBR_ACCT_GID"
+                  iwSelectTable(V_MBR_ACCT_CVRG.V_MBR_ACCT_CVRG, colPrefix = "MBR_ACC_CVRG"),
+                  "MBR_ACC_ACCT_GID = MBR_ACC_CVRG_MBR_ACCT_GID"
                 ), #1 JOIN V_MBR_ACCT_CVRG ON MBR_ACCT_GID
                 
-                iwSelectTable(POC_MBR_OPPTY_SAMPLE.V_MBR_ACCT_CONT_CVRG, colPrefix = "MBR_ACC_CONT_CVRG"),
-                "MBR_ACC_MBR_ACCT_GID = MBR_ACC_CONT_CVRG_MBR_ACCT_GID"
+                iwSelectTable(V_MBR_ACCT_CONT_CVRG.V_MBR_ACCT_CONT_CVRG, colPrefix = "MBR_ACC_CONT_CVRG"),
+                "MBR_ACC_ACCT_GID = MBR_ACC_CONT_CVRG_MBR_ACCT_GID"
               ), #2 LEFT OUTER JOIN V_MBR_ACCT_CONT_CVRG ON MBR_ACCT_GID
               
-              iwSelectTable(POC_MBR_OPPTY_SAMPLE.V_CLNT_ACCT_DENORM, colPrefix = "CLNT_ACCT_DENORM"),
+              iwSelectTable(V_CLNT_ACCT_DENORM.V_CLNT_ACCT_DENORM, colPrefix = "CLNT_ACCT_DENORM"),
               "PHMCY_LVL1_ACCT_GID = CLNT_ACCT_DENORM_LVL1_ACCT_GID AND PHMCY_LVL3_ACCT_GID = CLNT_ACCT_DENORM_LVL3_ACCT_GID"
             ), #3 JOIN V_CLNT_ACCT_DENORM ON LVL1_ACCT_GID AND LVL3_ACCT_GID TODO Missing filter of CURR_IND = 'Y' ..  NOT REQUIRED
             
-            iwSelectTable(POC_MBR_OPPTY_SAMPLE.V_PHMCY_DENORM, colPrefix = "PHMCY_DENORM"),
+            iwSelectTable(V_PHMCY_DENORM.V_PHMCY_DENORM, colPrefix = "PHMCY_DENORM"),
             "PHMCY_PHMCY_PTY_GID = PHMCY_DENORM_PHMCY_PTY_GID"
           ), #4 JOIN V_PHMCY_DENORM ON PHMCY_PHMCY_PTY_GID
           
-          iwSelectTable(POC_MBR_OPPTY_SAMPLE.V_BNFT_PLAN_RXC_CAG_PLAN_OPTNS, "STUS_CD = 'A'", "BNFT_PLAN_RCP_OPTNS"),
+          iwSelectTable(V_BNFT_PLAN_RXC_CAG_PLAN_OPTNS.V_BNFT_PLAN_RXC_CAG_PLAN_OPTNS, "STUS_CD = 'A'", "BNFT_PLAN_RCP_OPTNS"),
           "PHMCY_LVL1_ACCT_GID = BNFT_PLAN_RCP_OPTNS_LVL1_ACCT_GID AND PHMCY_LVL3_ACCT_GID = BNFT_PLAN_RCP_OPTNS_LVL3_ACCT_GID"
         ), #5 JOIN V_BNFT_PLAN_RXC_CAG_PLAN_OPTNS ON LVL1_ACCT_GID AND LVL3_ACCT_GID with filter STUS_CD = 'A'
         
-        iwSelectTable(POC_MBR_OPPTY_SAMPLE.V_MBR_ACCT_HRCHY, "SRC_CD = 'Q'", "MBR_ACCT_HRCHY"),
-        "MBR_ACC_MBR_ACCT_GID = MBR_ACCT_HRCHY_MBR_ACCT_GID"
+        iwSelectTable(V_MBR_ACCT_HRCHY.V_MBR_ACCT_HRCHY, "SRC_CD = 'Q'", "MBR_ACCT_HRCHY"),
+        "MBR_ACC_ACCT_GID = MBR_ACCT_HRCHY_MBR_ACCT_GID"
       ), #6 LEFT OUTER JOIN V_MBR_ACCT_HRCHY ON MBR_ACCT_GID with filter SRC_CD = 'Q'
     
-      iwSelectTable(POC_MBR_OPPTY_SAMPLE.V_MBR_PGM_RX_SCHD_HIST, colPrefix =  "MBR_PGM_RX_SCHD_HIST"),
+      iwSelectTable(V_MBR_PGM_RX_SCHD_HIST.V_MBR_PGM_RX_SCHD_HIST, colPrefix =  "MBR_PGM_RX_SCHD_HIST"),
       "MBR_ACCT_HRCHY_MBR_ACCT_GID = MBR_PGM_RX_SCHD_HIST_SCHD_ENRL_BNFCY_ID"
     ) #7 LEFT OUTER JOIN V_MBR_PGM_RX_SCHD_HIST ON MBR_ACCT_ID = V_MBR_PGM_RX_SCHD_HIST.QL_BNFCY_ID
   

@@ -11,8 +11,17 @@ saveToHdfs <- function(df, host, path) {
 
 
 prepareMoCampaignTable <- function() {
-  
-  LoadSources(iw.sources.POC_MBR_OPPTY_SAMPLE)
+
+  LoadSources(iw.sources.V_BNFT_PLAN_RXC_CAG_PLAN_OPTNS)
+  LoadSources(iw.sources.V_CLNT_ACCT_DENORM)
+  LoadSources(iw.sources.V_DRUG_DENORM)
+  LoadSources(iw.sources.V_MBR_ACCT_CONT_CVRG)
+  LoadSources(iw.sources.V_MBR_ACCT_CVRG)
+  LoadSources(iw.sources.V_MBR_ACCT_HIST)
+  LoadSources(iw.sources.V_MBR_ACCT_HRCHY)
+  LoadSources(iw.sources.V_MBR_PGM_RX_SCHD_HIST)
+  LoadSources(iw.sources.V_PHMCY_CLM)
+  LoadSources(iw.sources.V_PHMCY_DENORM)
   print("Phase 1 join starting")
   
   completeTable = prepare_p2_table()
