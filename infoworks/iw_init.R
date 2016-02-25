@@ -50,8 +50,8 @@ InitSpark <- function(sparkMaster, hdfs_url) {
   # This line loads SparkR from the installed directory
   .libPaths(c(file.path(Sys.getenv("SPARK_HOME"), "R", "lib"), .libPaths()))
   library(SparkR)
-  
-  Sys.setenv('SPARKR_SUBMIT_ARGS'='--packages com.databricks:spark-avro_2.10:2.0.1 sparkr-shell')
+
+  #Sys.setenv('SPARKR_SUBMIT_ARGS'='--packages com.databricks:spark-avro_2.10:2.0.1 sparkr-shell')
   #Sys.setenv('SPARKR_SUBMIT_ARGS'='"--jars" " sparkr-shell')
   
   sc <<- sparkR.init(master=sparkMaster, sparkEnvir=list(
@@ -66,9 +66,9 @@ InitSpark <- function(sparkMaster, hdfs_url) {
   #print(hdfs_url)
 }
 
-iw_init <- function(db="infoworks-new", host="54.164.4.54", port='27017',
+iw_init <- function(db="infoworks-new", host="localhost", port='27017',
                  username='infoworks', password='IN11**rk',
-                 sparkMaster = 'local[10]', hdfs_url = "hdfs://ip-172-30-0-245.ec2.internal:8020") {
+                 sparkMaster = 'spark://IRI1HDPMTL2V.ilab.cvscaremark.com:7077', hdfs_url = "hdfs://iri1hdpmtl2v.ilab.cvscaremark.com:8020") {
 
   #hdfs://ip-172-30-0-245.ec2.internal:8020    demo
   #hdfs://ip-10-37-200-15.ec2.internal:8020    demo backup
@@ -79,7 +79,7 @@ iw_init <- function(db="infoworks-new", host="54.164.4.54", port='27017',
 
   # Set this to where Spark is installed
   #demo
-  Sys.setenv(SPARK_HOME="/home/rstudio/old_spark-1.4.0-bin-hadoop2.6")
+  Sys.setenv(SPARK_HOME="/home/rstudio/spark-1.5.1-bin-hadoop2.6")
   #demo backup
   #Sys.setenv(SPARK_HOME="/home/rstudio/spark-1.5.2-bin-hadoop2.6")
   InitSpark(sparkMaster, hdfs_url)

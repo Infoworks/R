@@ -1,9 +1,18 @@
 # Transformations
 source('cvs/cvs_mo_phase1_new.R')
 
+########################################################################################################
+saveToHdfs <- function(df, host, path) {
+  writeToHdfs(df, host,path)
+  print("done !!!")
+}
+
+########################################################################################################
+
+
 prepareMoCampaignTable <- function() {
   
-  LoadSources(iw.sources.POC_MBR_OPPTY)
+  LoadSources(iw.sources.POC_MBR_OPPTY_SAMPLE)
   print("Phase 1 join starting")
   
   completeTable = prepare_p2_table()
@@ -36,7 +45,7 @@ prepareMoCampaignTable <- function() {
   createTms <- paste("'" ,Sys.time() , "'" ," as CREATE_TMS", sep = "")
   #rename columns
   transformedTable <- iwSelect(transformedTable, 
-      "PHMCY_ZIW_ROW_ID as MBR_OPPTY_GID", "MBR_ACC_EPH_LINK_ID as EPH_LINK_ID", "DRUG_GPI4_CD as GPI4_CD", " PHMCY_LVL1_ACCT_GID as LVL1_ACCT_GID", 
+      " 123 as MBR_OPPTY_GID", "MBR_ACC_EPH_LINK_ID as EPH_LINK_ID", "DRUG_GPI4_CD as GPI4_CD", " PHMCY_LVL1_ACCT_GID as LVL1_ACCT_GID", 
       " PHMCY_LVL3_ACCT_GID as LVL3_ACCT_GID",  " CLNT_ACCT_DENORM_LVL0_ACCT_ID as LVL0_ACCT_ID", " CLNT_ACCT_DENORM_LVL0_ACCT_NM as LVL0_ACCT_NM", 
       " CLNT_ACCT_DENORM_LVL0_EFF_DT as LVL0_EFF_DT", " CLNT_ACCT_DENORM_LVL0_EXPRN_DT as LVL0_EXPRN_DT", " CLNT_ACCT_DENORM_LVL1_ACCT_ID as LVL1_ACCT_ID", 
       " CLNT_ACCT_DENORM_LVL1_ACCT_NM as LVL1_ACCT_NM", " CLNT_ACCT_DENORM_LVL1_EFF_DT as LVL1_EFF_DT", " CLNT_ACCT_DENORM_LVL1_EXPRN_DT as LVL1_EXPRN_DT", 

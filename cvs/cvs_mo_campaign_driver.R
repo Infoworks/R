@@ -8,7 +8,10 @@ print("Starting")
 source('infoworks/infoworks.R')
 
 #Source cvs mo code
-source('cvs/cvs_mo_phase2.R')
+source('cvs/cvs_mo_phase2_new.R')
+
+Sys.setenv(http_proxy="http://wsgproxy.cvs.com:8080")
+Sys.setenv(https_proxy="http://wsgproxy.cvs.com:8080")
 
 #Prepare computation plan
 cmpgnMbrOpptyTable <- prepareMoCampaignTable()
@@ -16,4 +19,4 @@ cmpgnMbrOpptyTable <- prepareMoCampaignTable()
 print(head(cmpgnMbrOpptyTable))
 
 #Save output to hdfs
-saveToHdfs(cmpgnMbrOpptyTable, "ip-10-37-200-15.ec2.internal", "/iw/cvs/mo/campaign/")
+saveToHdfs(cmpgnMbrOpptyTable, "IRI1HDPMTL2V.ilab.cvscaremark.com", "/iw/cvs/mo/campaign/")
