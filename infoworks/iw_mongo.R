@@ -6,7 +6,7 @@ LoadSources <- function(...) {
   args_sources = lapply(args_sources, deparse)
 
   source_names = paste("'", paste(lapply(args_sources, LastDotValue), collapse="', '"), "'", sep="")
-  print(source_names)
+  #print(source_names)
 
   sources = dbGetQueryForKeys(iwmongo, "sources", paste("{name: { $in: [", source_names, " ]}}", sep=""), "{'name':1, 'tables':1, 'hdfs_path':1}", 0, 1000)
   assign("iw.sources", sources, envir = .GlobalEnv)
@@ -16,8 +16,8 @@ LoadSources <- function(...) {
     source_name = sources$name[[i]]
     source_id = sources$X_id[[i]]
     hdfs_path = sources$hdfs_path[[i]]
-    print("hdfs path ")
-    print( hdfs_path)
+    #print("hdfs path ")
+    #print( hdfs_path)
     tables = sources$tables[[i]]
 
     # removed initial iw.sources from variable names
@@ -64,7 +64,7 @@ LoadSources <- function(...) {
   }
 
   print("Sources loaded:")
-  print(sources_loaded)
+  #print(sources_loaded)
 }
 
 UnloadSources <- function() {
