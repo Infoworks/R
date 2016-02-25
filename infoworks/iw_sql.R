@@ -27,6 +27,18 @@ iwSelectTable <- function(iwTable, filterCondition = NULL, colPrefix = NULL) {
 
 
 ###########################################################################################################
+#select the table
+#params
+#iwTable Infoworks table reference
+#... select expressions
+#
+iwSelect <- function(iwTable, ...) {
+  return (select(iwTable, ...))
+}
+###########################################################################################################
+
+
+###########################################################################################################
 #join tables
 #params
 #iwTable1 Infoworks table reference
