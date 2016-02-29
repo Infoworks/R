@@ -55,7 +55,7 @@ InitSpark <- function(sparkMaster, hdfs_url) {
   #Sys.setenv('SPARKR_SUBMIT_ARGS'='"--jars" " sparkr-shell')
   
   sc <<- sparkR.init(master=sparkMaster, sparkEnvir=list(
-     spark.executor.cores='50', spark.executor.memory='10g'))
+     spark.executor.cores='1', spark.executor.memory='50g', spark.num.executors='1'))
   
   sqlContext <<- sparkRSQL.init(sc) 
   #WARN : hivecontext used in other files!!
