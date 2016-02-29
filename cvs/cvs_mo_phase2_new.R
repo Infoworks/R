@@ -32,9 +32,9 @@ prepareMoCampaignTable <- function() {
       #NORMALIZED_DAY_SPLY_QTY
       "CASE WHEN PHMCY_DAY_SPLY_QTY BETWEEN 1 AND 33 THEN 30 WHEN PHMCY_DAY_SPLY_QTY BETWEEN 34 AND 83 THEN 60 WHEN PHMCY_DAY_SPLY_QTY >= 84 THEN 90 END AS NORMALIZED_DAY_SPLY_QTY",
       #MBR_CURR_AGE
-      paste("FLOOR(datediff(from_unixtime(unix_timestamp()), MBR_ACC_MBR_BRTH_DT) / 365) as MBR_CURR_AGE", sep = "", collapse = ""),
+      paste("FLOOR(datediff(from_unixtime(unix_timestamp()), MBR_ACC_BRTH_DT) / 365) as MBR_CURR_AGE", sep = "", collapse = ""),
       #MINOR_IND
-      paste("CASE WHEN FLOOR(datediff(from_unixtime(unix_timestamp()), MBR_ACC_MBR_BRTH_DT) / 365) < 18 THEN 'Y' ELSE 'N' END AS MINOR_IND", sep = "", collapse = ""),
+      paste("CASE WHEN FLOOR(datediff(from_unixtime(unix_timestamp()), MBR_ACC_BRTH_DT) / 365) < 18 THEN 'Y' ELSE 'N' END AS MINOR_IND", sep = "", collapse = ""),
       #MBR_CURR_ELIG_IND
       paste("CASE WHEN '", currentDate , "' BETWEEN MBR_ACC_CVRG_CVRG_EFF_DT and MBR_ACC_CVRG_CVRG_EXPRN_DT THEN 'Y' ELSE 'N' END AS MBR_CURR_ELIG_IND", sep = "", collapse = ""),
       #MCV_IND
