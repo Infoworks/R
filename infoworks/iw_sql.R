@@ -66,7 +66,7 @@ iwJoinTables <- function(iwTable1, iwTable2, joinCondition, joinType = 'inner', 
   registerTempTable(iwTable1, tbl1Alias)
   registerTempTable(iwTable2, tbl2Alias)
   
-  sqlToRun <- paste("SELECT * FROM ", tbl1Alias, " JOIN ", tbl2Alias, " WHERE ", joinCondition)
+  sqlToRun <- paste("SELECT * FROM ", tbl1Alias, " ", joinType, " JOIN ", tbl2Alias, " WHERE ", joinCondition)
   joinedTableDf <- sql(hivecontext, sqlToRun)
   
   #filter if required
